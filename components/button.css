@@ -1,0 +1,101 @@
+/* Button Styles (Vanilla CSS) */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 0.375rem; /* Default rounded-md */
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  cursor: pointer;
+  outline: none;
+  border: 1px solid transparent;
+}
+
+.button:focus-visible {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.9); /* ring-2 ring-offset-2 ring-ring */
+}
+
+.button:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Button Variants */
+.button-variant-default {
+  background-color: #1a202c; /* primary */
+  color: #ffffff; /* primary-foreground */
+}
+.button-variant-default:hover {
+  background-color: #2d3748; /* primary-hover */
+}
+
+.button-variant-destructive {
+  background-color: #e53e3e; /* destructive */
+  color: #ffffff; /* destructive-foreground */
+}
+.button-variant-destructive:hover {
+  background-color: #c53030; /* destructive-hover */
+}
+
+.button-variant-outline {
+  border-color: #e2e8f0; /* border */
+  background-color: #ffffff; /* background */
+  color: #1a202c; /* foreground */
+}
+.button-variant-outline:hover {
+  background-color: #f7fafc; /* accent */
+  color: #1a202c; /* accent-foreground */
+}
+
+.button-variant-secondary {
+  background-color: #edf2f7; /* secondary */
+  color: #1a202c; /* secondary-foreground */
+}
+.button-variant-secondary:hover {
+  background-color: #e2e8f0; /* secondary-hover */
+}
+
+.button-variant-ghost {
+  background-color: transparent;
+  color: #1a202c; /* foreground */
+}
+.button-variant-ghost:hover {
+  background-color: #f7fafc; /* accent */
+  color: #1a202c; /* accent-foreground */
+}
+
+.button-variant-link {
+  background-color: transparent;
+  color: #1a202c; /* foreground */
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.button-variant-link:hover {
+  text-decoration: none;
+}
+
+/* Button Sizes */
+.button-size-default {
+  height: 2.5rem; /* h-10 */
+  padding: 0 1rem; /* px-4 py-2 */
+}
+
+.button-size-sm {
+  height: 2.25rem; /* h-9 */
+  padding: 0 0.75rem; /* px-3 */
+  font-size: 0.8125rem; /* text-xs */
+}
+
+.button-size-lg {
+  height: 3rem; /* h-12 */
+  padding: 0 2rem; /* px-8 */
+  font-size: 1rem; /* text-base */
+}
+
+.button-size-icon {
+  height: 2.5rem; /* h-10 */
+  width: 2.5rem; /* w-10 */
+  padding: 0;
+}
