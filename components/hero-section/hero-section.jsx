@@ -2,7 +2,7 @@ import OptimizedImage from "@/components/optimizedimage"
 import { Button } from "@/components/button"
 
 export function HeroSection({ content, config }) {
-  const { title, subHeadline, buttonText, buttonUrl, asset } = content
+  const { title, subHeadline, buttonText, buttonUrl, asset, style } = content
   const imageSizes = [
     {
       imageWidth: '1600px',
@@ -49,7 +49,7 @@ export function HeroSection({ content, config }) {
 
 
   return (
-    <section className="hero-section" {...editorProps}>
+    <section className={"hero-section " + style} {...editorProps}>
       <OptimizedImage
         asset={asset}
         alt={title}
@@ -59,13 +59,15 @@ export function HeroSection({ content, config }) {
         sizes="100vw"
         imageSizes={imageSizes}
         config={config}
-        imageProps
+        imageProps={imageProps}
       />
       <div className="hero-overlay" />
       <div className="hero-content">
         <p className="hero-subheadline" data-aue-prop='subHeadline' data-aue-type='text' data-aue-label='Title'>{subHeadline}</p>
         <h1 className="hero-headline" data-aue-prop='title' data-aue-type='text' data-aue-label='Title'>{title}</h1>
-        <Button className="hero-button" data-aue-prop='buttonText' data-aue-type='text' data-aue-label='Button Text'>{buttonText}</Button>
+        {buttonText && (
+          <Button className="hero-button" data-aue-prop='buttonText' data-aue-type='text' data-aue-label='Button Text'>{buttonText}</Button>
+        )}
       </div>
     </section>
   )

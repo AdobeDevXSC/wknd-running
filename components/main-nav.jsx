@@ -10,7 +10,6 @@ import OptimizedImage from "@/components/optimizedimage";
 import "./main-nav.css" // Import component-specific CSS
 
 const LinkItem = ({ item, activeMegaMenu, handleMouseEnter, handleMouseLeave, config }) => {
-  console.log("LinkItem item:", item.megamenuPanel);
    const imageProps = {
     'data-aue-prop': 'asset',
     'data-aue-type': 'media',
@@ -60,11 +59,11 @@ const LinkItem = ({ item, activeMegaMenu, handleMouseEnter, handleMouseLeave, co
                 alt={item.title}
                 fill
                 priority
-                className="hero-image"
                 sizes="100vw"
                 imageSizes={imageSizes}
                 config={config}
                 imageProps
+                className="mega-menu-product-image"
               />
               <div className="mega-menu-image-text" dangerouslySetInnerHTML={{ __html: item.megamenuPanel.imageDescription.html }} /> 
             </div>
@@ -221,7 +220,6 @@ export function MainNav({ config }) {
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false)
   const [activeMegaMenu, setActiveMegaMenu] = useState(null) // To track which mega menu is open
   const [content, setContent] = useState([]);
-  console.log("MainNav config:", config);
 
   useEffect(() => {
     const randomNumber = Math.random().toString(36).substring(2, 15)

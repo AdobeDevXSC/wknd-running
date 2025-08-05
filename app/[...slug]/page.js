@@ -1,24 +1,24 @@
-"use client";
+"use client"
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from "next/link"
 import Script from 'next/script';
-import Head from 'next/head';
 import { MainNav } from "@/components/main-nav"
 import { ModelManager } from "@/components/model-manager"
 import { Footer } from "@/components/footer"
 import { Modal } from "@/components/modal/modal" // Import the new Modal component
 import { Button } from "@/components/button"
 import AEMHeadless from '@adobe/aem-headless-client-js';
+import { ProductListPage } from "@/components/product-list-page/product-list-page"
 
-
-export default function Component() {
+export default function Page({ params }) {
+  const router = useRouter()
   const [aemEnvironment, setAemEnvironment] = useState('');
   const [projectName, setProjectName] = useState('');
   const [config, setConfig] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [editorProps, setEditorProp] = useState({});
-
- const [content, setContent] = useState(null)
+  const [content, setContent] = useState(null)
 
   const handleCloseModal = () => {
     setShowModal(false)
@@ -46,13 +46,13 @@ export default function Component() {
         serviceURL: aemEnvironment,
         endpoint: '/graphql/execute.json',
         fetch: ((resource, options = {}) => {
-          if(resource.startsWith('https://author-'))
+          if (resource.startsWith('https://author-'))
             options.credentials = 'include';
           return window.fetch(resource, options);
         })
       });
 
-      sdk.runPersistedQuery('v0/screenByPath', { path: `/content/dam/${projectName}/home/home`, variation: `master`, v1: randomNumber})
+      sdk.runPersistedQuery('v0/screenByPath', { path: `/${params.slug.join('/')}`, variation: `master`, v1: randomNumber })
         .then(({ data }) => {
           if (data) {
             setContent(data?.screenByPath?.item);
@@ -107,7 +107,7 @@ export default function Component() {
           </Link>
         </div>
         {/* Main Header/Navbar */}
-        {config && (<MainNav config={config}/>)}
+        {config && (<MainNav config={config} />)}
         <main className="flex-1" {...editorProps}>
           {content && content.block.map((block, n) => {
             return (
@@ -116,6 +116,7 @@ export default function Component() {
               </div>
             )
           })}
+          <ProductListPage />
         </main>
         <Footer />
         <Modal isOpen={showModal} onClose={handleCloseModal}>

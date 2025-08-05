@@ -146,15 +146,23 @@ a {
 
 @media (min-width: 768px) {
   /* md breakpoint */
-  .hero-section {
+   .hero-section.hero {
     height: 700px;
+  }
+
+   .hero-section.banner {
+    height: 300px;
   }
 }
 
 @media (min-width: 1024px) {
   /* lg breakpoint */
-  .hero-section {
+  .hero-section.hero {
     height: 800px;
+  }
+
+   .hero-section.banner {
+    height: 400px;
   }
 }
 
