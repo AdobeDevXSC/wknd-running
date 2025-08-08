@@ -1,183 +1,170 @@
-import { useState, useEffect } from 'react'
-import Image from "next/image"
-import { ArrowUpDown, Grid, List, Search, Star } from "lucide-react"
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import { ArrowUpDown, Grid, List, Search, Loader2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { searchProducts } from "@/lib/api/plp";
+import {
+  CATALOG_VIEW_ID,
+  DEFAULT_LOCALE,
+  DEFAULT_PRICE_BOOK,
+  ALL_PRICE_BOOKS,
+} from "@/lib/constants";
+import { capitalize } from "@/lib/utils";
 
-// Import the CSS file
-import "./product-list-page.css"
+import "./product-list-page.css";
 
-// Mock product data
-// const products = [
-//   {
-//     id: 1,
-//     name: "Wireless Bluetooth Headphones",
-//     price: 79.99,
-//     originalPrice: 99.99,
-//     rating: 4.5,
-//     reviews: 128,
-//     image: "/placeholder.svg?height=300&width=300",
-//     badge: "Best Seller",
-//     category: "Electronics",
-//   },
-//   {
-//     id: 2,
-//     name: "Premium Coffee Beans",
-//     price: 24.99,
-//     rating: 4.8,
-//     reviews: 89,
-//     image: "/placeholder.svg?height=300&width=300",
-//     badge: "Organic",
-//     category: "Food & Beverage",
-//   },
-//   {
-//     id: 3,
-//     name: "Ergonomic Office Chair",
-//     price: 299.99,
-//     originalPrice: 399.99,
-//     rating: 4.3,
-//     reviews: 67,
-//     image: "/placeholder.svg?height=300&width=300",
-//     badge: "Sale",
-//     category: "Furniture",
-//   },
-//   {
-//     id: 4,
-//     name: "Smartphone Case",
-//     price: 19.99,
-//     rating: 4.2,
-//     reviews: 234,
-//     image: "/placeholder.svg?height=300&width=300",
-//     category: "Accessories",
-//   },
-//   {
-//     id: 5,
-//     name: "Fitness Tracker Watch",
-//     price: 149.99,
-//     originalPrice: 199.99,
-//     rating: 4.6,
-//     reviews: 156,
-//     image: "/placeholder.svg?height=300&width=300",
-//     badge: "New",
-//     category: "Electronics",
-//   },
-//   {
-//     id: 6,
-//     name: "Yoga Mat",
-//     price: 39.99,
-//     rating: 4.4,
-//     reviews: 92,
-//     image: "/placeholder.svg?height=300&width=300",
-//     category: "Sports",
-//   },
-//   {
-//     id: 7,
-//     name: "LED Desk Lamp",
-//     price: 59.99,
-//     rating: 4.7,
-//     reviews: 78,
-//     image: "/placeholder.svg?height=300&width=300",
-//     badge: "Energy Efficient",
-//     category: "Home & Garden",
-//   },
-//   {
-//     id: 8,
-//     name: "Wireless Mouse",
-//     price: 29.99,
-//     originalPrice: 39.99,
-//     rating: 4.1,
-//     reviews: 145,
-//     image: "/placeholder.svg?height=300&width=300",
-//     category: "Electronics",
-//   },
-// ]
+const PAGE_SIZE = 25;
+
+const formatPrice = (priceType) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: priceType.amount.currency,
+  }).format(priceType.amount.value);
+};
+
+const showDiscount = (price, globalPrice = null) => {
+  // Check if a discount is in place in the selected price book
+  if (price.regular.amount.value !== price.final.amount.value) {
+    return true;
+  }
+  // Check if the global price book is different from the selected price book
+  if (
+    globalPrice &&
+    globalPrice.final.amount.value !== price.final.amount.value
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const getAllCategories = (products) => {
+  return [
+    ...new Set(products.map((product) => product.category).filter(Boolean)),
+  ];
+};
 
 export function ProductListPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [products, setProducts] = useState([]);
+  const [sortBy, setSortBy] = useState("featured");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedPriceBook, setSelectedPriceBook] =
+    useState(DEFAULT_PRICE_BOOK);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const loadProducts = useCallback(
+    async (page = 1, append = false) => {
+      try {
+        let products, totalCount;
+
+        if (selectedPriceBook === DEFAULT_PRICE_BOOK) {
+          // Single call for global price book
+          const result = await searchProducts(
+            CATALOG_VIEW_ID,
+            DEFAULT_LOCALE,
+            selectedPriceBook,
+            debouncedSearchTerm,
+            PAGE_SIZE,
+            page
+          );
+          products = result.products;
+          totalCount = result.totalCount;
+        } else {
+          // Dual call: get selected price book data and global price book data to show strikethrough price
+          const [selectedResult, globalResult] = await Promise.all([
+            searchProducts(
+              CATALOG_VIEW_ID,
+              DEFAULT_LOCALE,
+              selectedPriceBook,
+              debouncedSearchTerm,
+              PAGE_SIZE,
+              page
+            ),
+            searchProducts(
+              CATALOG_VIEW_ID,
+              DEFAULT_LOCALE,
+              DEFAULT_PRICE_BOOK,
+              debouncedSearchTerm,
+              PAGE_SIZE,
+              page
+            ),
+          ]);
+
+          // Merge the results by SKU, adding global price to each product
+          const globalProductsMap = new Map(
+            globalResult.products.map((product) => [product.sku, product])
+          );
+
+          products = selectedResult.products.map((product) => ({
+            ...product,
+            globalPrice: globalProductsMap.get(product.sku)?.price || null,
+          }));
+
+          totalCount = selectedResult.totalCount;
+        }
+
+        if (append) {
+          setProducts((prevProducts) => [...prevProducts, ...products]);
+        } else {
+          setProducts(products);
+        }
+        setTotalCount(totalCount);
+        setCurrentPage(page);
+      } catch (error) {
+        console.error("Error loading products:", error);
+      }
+    },
+    [debouncedSearchTerm, selectedPriceBook]
+  );
 
   useEffect(() => {
-    const query = `query Products($search: String!){
-      productSearch(
-        phrase: $search
-        filter: []
-        sort: [{ attribute: "relevance", direction: DESC }]
-        page_size: 25
-      ) {
-        items {
-          productView {
-            sku
-            name
-            description
-            shortDescription
-            images {
-              url
-            }
-            ... on SimpleProductView {
-              attributes {
-                label
-                name
-                value
-              }
-              price {
-                regular {
-                  amount {
-                    value
-                    currency
-                  }
-                }
-                roles
-              }
-            }
-          }
-        }
-      }
-    }`;
-    const data = JSON.stringify({ query, variables: { search: "" } });
-    const url = 'https://na1-sandbox.api.commerce.adobe.com/NZwP3wKPFXBCTLGqxYWZne/graphql';
+    loadProducts(1, false);
+  }, [debouncedSearchTerm, selectedPriceBook]);
 
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'AC-View-ID': '426ffe32-e0a9-4c53-8ec9-3f7118cbf6b2',
-        'AC-Source-Locale': 'en-US'
-      },
-      body: data,
-    }).then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    }).then(data => {
-      let products = data?.data?.productSearch?.items || [];
-      products = products.map(item => {
-        item.productView.attributes.forEach(element => {
-          if(element.name === 'part_category') {
-            item.productView.category = element.value;
-          }
-        });
-        return item.productView
-      });
-      setProducts(products);
+  const handleLoadMore = async () => {
+    setIsLoadingMore(true);
+    await loadProducts(currentPage + 1, true);
+    setIsLoadingMore(false);
+  };
 
-    }).catch(error => {
-      console.error('Error fetching products:', error);
-    });
+  // Filter products based on selected category
+  const filteredProducts = products.filter((product) => {
+    if (selectedCategory !== "all" && product.category !== selectedCategory) {
+      return false;
+    }
+    return true;
+  });
 
-  }, []);
-
-  console.log(products);
+  const hasMoreProducts = filteredProducts.length < totalCount;
 
   return (
     <div className="product-list-page">
@@ -194,39 +181,85 @@ export function ProductListPage() {
             <div className="filters-container">
               <div className="search-container">
                 <Search className="search-icon" />
-                <Input placeholder="Search products..." className="search-input" />
+                <Input
+                  placeholder="Search products..."
+                  className="search-input"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
 
-              <Select>
-                <SelectTrigger className="select-trigger category-select">
+              {/* Category Filter */}
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="furniture">Furniture</SelectItem>
-                  <SelectItem value="sports">Sports</SelectItem>
-                  <SelectItem value="home">Home & Garden</SelectItem>
+                  {getAllCategories(products).map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {capitalize(category)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
+              {/* Sort by */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="sort-button bg-transparent">
+                  <Button
+                    variant="outline"
+                    className="sort-button bg-transparent"
+                  >
                     <ArrowUpDown className="sort-icon" />
                     Sort by
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="sort-dropdown">
-                  <DropdownMenuRadioGroup value="featured">
-                    <DropdownMenuRadioItem value="featured">Featured</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="price-low">Price: Low to High</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="price-high">Price: High to Low</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="rating">Highest Rated</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
+                  <DropdownMenuRadioGroup
+                    value={sortBy}
+                    onValueChange={setSortBy}
+                  >
+                    <DropdownMenuRadioItem value="featured">
+                      Featured
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="price-low">
+                      Price: Low to High
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="price-high">
+                      Price: High to Low
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="rating">
+                      Highest Rated
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="newest">
+                      Newest
+                    </DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {/* Price Book Filter */}
+              <Select
+                value={selectedPriceBook}
+                onValueChange={setSelectedPriceBook}
+              >
+                <SelectTrigger className="w-[175px]">
+                  <SelectValue placeholder="Price Book" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ALL_PRICE_BOOKS.map((priceBook) => (
+                    <SelectItem key={priceBook} value={priceBook}>
+                      {priceBook === "wknd_global"
+                        ? "Global Price Book"
+                        : "VIP Price Book"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -236,12 +269,17 @@ export function ProductListPage() {
       <div className="main-content">
         <div className="results-header">
           <p className="results-text">
-            Showing <span className="font-medium">1-{products.length}</span> of{" "}
-            <span className="font-medium">{products.length}</span> results
+            Showing{" "}
+            <span className="font-medium">1-{filteredProducts.length}</span> of{" "}
+            <span className="font-medium">{totalCount}</span> results
           </p>
 
           <div className="view-toggle">
-            <Button variant="outline" size="sm" className="view-button bg-transparent">
+            <Button
+              variant="outline"
+              size="sm"
+              className="view-button bg-transparent"
+            >
               <Grid className="view-icon" />
             </Button>
             <Button variant="ghost" size="sm" className="view-button">
@@ -252,7 +290,7 @@ export function ProductListPage() {
 
         {/* Product Grid */}
         <div className="product-grid">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <Card key={product.sku} className="product-card">
               <CardContent className="product-card-content">
                 <div className="product-image-container">
@@ -263,19 +301,29 @@ export function ProductListPage() {
                     height={300}
                     className="product-image"
                   />
-                  
                 </div>
 
                 <div className="product-info">
                   <div className="product-header">
-                    <p className="product-category">{product.category || 'No Category'}</p>
+                    <p className="product-category">
+                      {capitalize(product.category) || "No Category"}
+                    </p>
                     <h3 className="product-name">{product.name}</h3>
                   </div>
 
                   <div className="price-container">
                     <div className="price-info">
-                      <span className="current-price">${product.price}</span>
-                      {product.price && <span className="original-price">${product.price}</span>}
+                      <span className="current-price">
+                        {formatPrice(product.price.final)}
+                      </span>
+                      {showDiscount(product.price, product.globalPrice) && (
+                        <span className="original-price">
+                          {product.globalPrice &&
+                          selectedPriceBook !== "wknd_global"
+                            ? formatPrice(product.globalPrice.final)
+                            : formatPrice(product.price.regular)}
+                        </span>
+                      )}
                     </div>
                     <Button size="sm" className="add-to-cart-btn">
                       Add to Cart
@@ -288,12 +336,27 @@ export function ProductListPage() {
         </div>
 
         {/* Load More */}
-        <div className="load-more-container">
-          <Button variant="outline" size="lg" className="load-more-btn bg-transparent">
-            Load More Products
-          </Button>
-        </div>
+        {hasMoreProducts && (
+          <div className="load-more-container">
+            <Button
+              variant="outline"
+              size="lg"
+              className="load-more-btn bg-transparent"
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Load More Products"
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }

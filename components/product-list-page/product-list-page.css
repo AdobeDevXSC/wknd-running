@@ -152,7 +152,8 @@
 }
 
 .product-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .product-image-container {
@@ -387,7 +388,7 @@
   .sm\:w-40 {
     width: 10rem;
   }
-  
+
   .sm\:w-auto {
     width: auto;
   }
@@ -397,11 +398,11 @@
   .lg\:flex-row {
     flex-direction: row;
   }
-  
+
   .lg\:items-center {
     align-items: center;
   }
-  
+
   .lg\:justify-between {
     justify-content: space-between;
   }
