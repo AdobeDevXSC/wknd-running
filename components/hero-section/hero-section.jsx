@@ -1,8 +1,9 @@
 import OptimizedImage from "@/components/optimizedimage"
 import { Button } from "@/components/button"
+import Link from "next/link"
 
 export function HeroSection({ content, config }) {
-  const { title, subHeadline, buttonText, buttonUrl, asset, style } = content
+  const { title, subHeadline, buttonText, demo_sku, asset, style } = content;
   const imageSizes = [
     {
       imageWidth: '1600px',
@@ -66,7 +67,9 @@ export function HeroSection({ content, config }) {
         <p className="hero-subheadline" data-aue-prop='subHeadline' data-aue-type='text' data-aue-label='Title'>{subHeadline}</p>
         <h1 className="hero-headline" data-aue-prop='title' data-aue-type='text' data-aue-label='Title'>{title}</h1>
         {buttonText && (
-          <Button className="hero-button" data-aue-prop='buttonText' data-aue-type='text' data-aue-label='Button Text'>{buttonText}</Button>
+          <Button className="hero-button" data-aue-prop='buttonText' data-aue-type='text' data-aue-label='Button Text'>
+            <Link href={`/product/${demo_sku[0].sku}`}>{buttonText}</Link>
+          </Button>
         )}
       </div>
     </section>
