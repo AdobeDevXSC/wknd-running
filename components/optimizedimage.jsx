@@ -2,6 +2,7 @@ import Image from 'next/image'
 
 const OptimizedImage = ({ asset, alt, fill, priority, className, sizes, imageSizes, config, imageProps }) => {
   // Default is false
+  console.log("asset", asset, alt);
   const { _dynamicUrl, _authorUrl } = asset;
   const src = _dynamicUrl || _authorUrl;
   return (
