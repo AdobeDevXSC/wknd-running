@@ -174,8 +174,8 @@ export function ProductListPage( { content, config } ) {
         <div className="header-container">
           <div className="header-content">
             <div className="header-text">
-              <h1 className="header-title">All Products</h1>
-              <p className="header-subtitle">Discover our amazing collection</p>
+              <h1 className="header-title">{content.title}</h1>
+              <p className="header-subtitle">{content.subtitle}</p>
             </div>
 
             {/* Search and Filters */}
