@@ -60,7 +60,8 @@ const getAllCategories = (products) => {
   ];
 };
 
-export function ProductListPage() {
+export function ProductListPage( { content, config } ) {
+  console.log("content", content);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [totalCount, setTotalCount] = useState(0);
@@ -89,7 +90,7 @@ export function ProductListPage() {
         if (selectedPriceBook === DEFAULT_PRICE_BOOK) {
           // Single call for global price book
           const result = await searchProducts(
-            CATALOG_VIEW_ID,
+            content.catalogView,
             DEFAULT_LOCALE,
             selectedPriceBook,
             debouncedSearchTerm,
@@ -102,7 +103,7 @@ export function ProductListPage() {
           // Dual call: get selected price book data and global price book data to show strikethrough price
           const [selectedResult, globalResult] = await Promise.all([
             searchProducts(
-              CATALOG_VIEW_ID,
+              content.catalogView,
               DEFAULT_LOCALE,
               selectedPriceBook,
               debouncedSearchTerm,
@@ -110,7 +111,7 @@ export function ProductListPage() {
               page
             ),
             searchProducts(
-              CATALOG_VIEW_ID,
+              content.catalogView,
               DEFAULT_LOCALE,
               DEFAULT_PRICE_BOOK,
               debouncedSearchTerm,

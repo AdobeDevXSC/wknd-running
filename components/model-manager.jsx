@@ -2,11 +2,13 @@
 import { HeroSection as Hero } from "@/components/hero-section/hero-section"
 import { ProductCollection } from "@/components/product-collection/product-collection"
 import { CategoryGrid } from "@/components/category-grid/category-grid"
+import { ProductListPage as ProductCollectionList } from "@/components/product-list-page/product-list-page"
 
 export const componentMapping = {
   Hero,
   ProductCollection,
-  CategoryGrid
+  CategoryGrid,
+  ProductCollectionList
 };
 
 export const ModelManager = ({ content, config }) => {

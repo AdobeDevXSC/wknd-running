@@ -116,7 +116,7 @@ export default function Page({ params }) {
               </div>
             )
           })}
-          <ProductListPage />
+          {/* <ProductListPage /> */}
         </main>
         <Footer />
         <Modal isOpen={showModal} onClose={handleCloseModal}>
