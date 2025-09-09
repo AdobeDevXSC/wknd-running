@@ -76,7 +76,7 @@ export function ProductCollection({ content, config }) {
             <div className="collection-content">
               <h2 className="collection-title" data-aue-prop='title' data-aue-type='text' data-aue-label='Title'>{item.title}</h2>
               <Button variant="outline" className="collection-button">
-                <Link href={item._path}>Shop Now</Link>
+                <Link href={item._path}>{content.buttonName || 'Shop Now'}</Link>
               </Button>
             </div>
           </div>

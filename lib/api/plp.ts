@@ -76,7 +76,7 @@ export async function searchProducts(
   try {
     const headers = {
       "Content-Type": "application/json",
-      "AC-View-ID": viewId,
+      "AC_ENVIRONMENT_ID": viewId,
       "AC-Source-Locale": locale,
       "AC-Price-Book-ID": priceBookId,
     };

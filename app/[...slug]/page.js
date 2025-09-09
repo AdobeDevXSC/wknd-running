@@ -57,7 +57,7 @@ export default function Page({ params }) {
           if (data) {
             setContent(data?.screenByPath?.item);
             setEditorProp({
-              'data-aue-resource': `urn:aemconnection:${data?.screenByPath?.item?._path}/jcr:content/data/master`,
+              'data-aue-resource': `urn:aemconnection:${data?.screenByPath?.item?._path}/jcr:content/data/${data?.screenByPath?.item?._variation}`,
               'data-aue-type': 'container',
               'data-aue-filter': 'screen',
               'data-aue-label': 'Screen',

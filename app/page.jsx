@@ -9,6 +9,13 @@ import { Footer } from "@/components/footer"
 import { Modal } from "@/components/modal/modal" // Import the new Modal component
 import { Button } from "@/components/button"
 import AEMHeadless from '@adobe/aem-headless-client-js';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 
 export default function Component() {
@@ -17,8 +24,8 @@ export default function Component() {
   const [config, setConfig] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [editorProps, setEditorProp] = useState({});
-
- const [content, setContent] = useState(null)
+  const [locale, setLocale] = useState('en');
+  const [content, setContent] = useState(null)
 
   const handleCloseModal = () => {
     setShowModal(false)
@@ -30,6 +37,7 @@ export default function Component() {
     if (typeof window !== 'undefined') {
       const aemEnvironment = localStorage.getItem('aemEnvironment');
       const projectName = localStorage.getItem('projectName');
+    
 
       if (!aemEnvironment || !projectName) {
         setShowModal(true);
@@ -40,24 +48,24 @@ export default function Component() {
         project: projectName,
       });
       const randomNumber = Math.random().toString(36).substring(2, 15)
-      const graphqlEndpoint = `${aemEnvironment}/graphql/execute.json/${projectName}/screenByPath;path=/content/dam/v0/home/home;variation=master?_=${randomNumber}`
+      // const graphqlEndpoint = `${aemEnvironment}/graphql/execute.json/${projectName}/screenByPath;path=/content/dam/v0/home/home;variation=master?_=${randomNumber}`
 
       const sdk = new AEMHeadless({
         serviceURL: aemEnvironment,
         endpoint: '/graphql/execute.json',
         fetch: ((resource, options = {}) => {
-          if(resource.startsWith('https://author-'))
+          if (resource.startsWith('https://author-'))
             options.credentials = 'include';
           return window.fetch(resource, options);
         })
       });
 
-      sdk.runPersistedQuery('v0/screenByPath', { path: `/content/dam/${projectName}/home/home`, variation: `master`, v1: randomNumber})
+      sdk.runPersistedQuery('v0/screenByPath', { path: `/content/dam/${projectName}/site/${locale}/home/home`, variation: `master`, v1: randomNumber })
         .then(({ data }) => {
           if (data) {
             setContent(data?.screenByPath?.item);
             setEditorProp({
-              'data-aue-resource': `urn:aemconnection:${data?.screenByPath?.item?._path}/jcr:content/data/master`,
+              'data-aue-resource': `urn:aemconnection:${data?.screenByPath?.item?._path}/jcr:content/data/${data?.screenByPath?.item?._variation}`,
               'data-aue-type': 'container',
               'data-aue-filter': 'screen',
               'data-aue-label': 'Screen',
@@ -69,7 +77,15 @@ export default function Component() {
           console.log(`Error with screen request. ${error.message}`);
         });
     }
-  }, []);
+  }, [locale]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (locale) {
+        localStorage.setItem('locale', locale);
+      }
+    }
+  }, [locale]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -93,6 +109,19 @@ export default function Component() {
       <div className="flex flex-col min-h-screen bg-white text-gray-900">
         {/* Top Utility Bar */}
         <div className="utility-bar">
+          {/* Category Filter */}
+          <Select
+            value={locale}
+            onValueChange={setLocale}
+          >
+            <SelectTrigger className="w-[100px] h-[30px] text-xs">
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="es">Spanish</SelectItem>
+            </SelectContent>
+          </Select>
           <Link href="#" className="hover:underline">
             Find a Store
           </Link>
@@ -107,7 +136,7 @@ export default function Component() {
           </Link>
         </div>
         {/* Main Header/Navbar */}
-        {config && (<MainNav config={config}/>)}
+        {config && (<MainNav config={config} locale={locale} />)}
         <main className="flex-1" {...editorProps}>
           {content && content.block.map((block, n) => {
             return (

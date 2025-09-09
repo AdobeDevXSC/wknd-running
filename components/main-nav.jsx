@@ -216,7 +216,7 @@ const LinkItem = ({ item, activeMegaMenu, handleMouseEnter, handleMouseLeave, co
   // )
 }
 
-export function MainNav({ config }) {
+export function MainNav({ config, locale = 'en' }) {
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false)
   const [activeMegaMenu, setActiveMegaMenu] = useState(null) // To track which mega menu is open
   const [content, setContent] = useState([]);
@@ -235,7 +235,7 @@ export function MainNav({ config }) {
         })
       });
 
-      sdk.runPersistedQuery('v0/screenNavigation', { project: `/content/dam/${project}` })
+      sdk.runPersistedQuery('v0/screenNavigation', { project: `/content/dam/${project}`, locale: locale })
         .then(({ data }) => {
           if (data) {
             setContent(data.screenList.items);

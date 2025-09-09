@@ -36,7 +36,7 @@ export function HeroSection({ content, config }) {
 
 
   const editorProps = {
-    'data-aue-resource': `urn:aemconnection:${content?._path}/jcr:content/data/master`,
+    'data-aue-resource': `urn:aemconnection:${content?._path}/jcr:content/data/${content?._variation}`,
     'data-aue-type': 'reference',
     'data-aue-label': 'Hero',
     'data-aue-model': content?._model?._path
@@ -68,7 +68,7 @@ export function HeroSection({ content, config }) {
         <h1 className="hero-headline" data-aue-prop='title' data-aue-type='text' data-aue-label='Title'>{title}</h1>
         {buttonText && (
           <Button className="hero-button" data-aue-prop='buttonText' data-aue-type='text' data-aue-label='Button Text'>
-            <Link href={`/product/${demo_sku[0].sku}`}>{buttonText}</Link>
+            <Link href={`/product/${demo_sku[0]?.sku}`}>{buttonText}</Link>
           </Button>
         )}
       </div>

@@ -84,13 +84,15 @@ export function ProductListPage( { content, config } ) {
 
   const loadProducts = useCallback(
     async (page = 1, append = false) => {
+      console.log("CATALOG_VIEW_ID", CATALOG_VIEW_ID);
       try {
         let products, totalCount;
 
         if (selectedPriceBook === DEFAULT_PRICE_BOOK) {
           // Single call for global price book
+          console.log("CATALOG_VIEW_ID", CATALOG_VIEW_ID);
           const result = await searchProducts(
-            content.catalogView,
+            CATALOG_VIEW_ID,
             DEFAULT_LOCALE,
             selectedPriceBook,
             debouncedSearchTerm,
@@ -103,7 +105,7 @@ export function ProductListPage( { content, config } ) {
           // Dual call: get selected price book data and global price book data to show strikethrough price
           const [selectedResult, globalResult] = await Promise.all([
             searchProducts(
-              content.catalogView,
+              CATALOG_VIEW_ID,
               DEFAULT_LOCALE,
               selectedPriceBook,
               debouncedSearchTerm,
@@ -111,7 +113,7 @@ export function ProductListPage( { content, config } ) {
               page
             ),
             searchProducts(
-              content.catalogView,
+              CATALOG_VIEW_ID,
               DEFAULT_LOCALE,
               DEFAULT_PRICE_BOOK,
               debouncedSearchTerm,
@@ -149,7 +151,7 @@ export function ProductListPage( { content, config } ) {
 
   useEffect(() => {
     loadProducts(1, false);
-  }, [debouncedSearchTerm, selectedPriceBook]);
+  }, [debouncedSearchTerm, selectedPriceBook, CATALOG_VIEW_ID]);
 
   const handleLoadMore = async () => {
     setIsLoadingMore(true);
@@ -167,15 +169,23 @@ export function ProductListPage( { content, config } ) {
 
   const hasMoreProducts = filteredProducts.length < totalCount;
 
+  console.log("content", content);
+  const editorProps = {
+    'data-aue-resource': `urn:aemconnection:${content?._path}/jcr:content/data/${content?._variation}`,
+    'data-aue-type': 'reference',
+    'data-aue-label': 'Product List',
+    'data-aue-model': content?._model?._path
+  };
+
   return (
-    <div className="product-list-page">
+    <div className="product-list-page" {...editorProps}>
       {/* Header */}
       <div className="header">
         <div className="header-container">
           <div className="header-content">
             <div className="header-text">
-              <h1 className="header-title">{content.title}</h1>
-              <p className="header-subtitle">{content.subtitle}</p>
+              <h1 className="header-title" data-aue-prop='title' data-aue-type='text' data-aue-label='Title'>{content.title}</h1>
+              <p className="header-subtitle" data-aue-prop='subtitle' data-aue-type='text' data-aue-label='Subtitle'>{content.subtitle}</p>
             </div>
 
             {/* Search and Filters */}
