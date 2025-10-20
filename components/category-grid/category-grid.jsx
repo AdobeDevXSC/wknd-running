@@ -42,7 +42,7 @@ export function CategoryGrid({ content, config }) {
   console.log(content);
   return (
     <section className='category-grid' {...editorProps}>
-      <h2 className='category-grid-title' data-aue-prop='headline' data-aue-type='richtext' data-aue-label='Headline'>{mapJsonRichText(content?.headline.json)}</h2>
+      <h2 className='category-grid-title' data-aue-prop='headline' data-aue-type='richtext' data-aue-label='Headline'>{mapJsonRichText(content?.headline?.json)}</h2>
       <div className='category-items'>
         {categories.map((category) => (
           <GridItem key={category.name} category={category} />
